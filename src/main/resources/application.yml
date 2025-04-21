@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: resume-parser
+  datasource:
+    url: jdbc:h2:mem:resume-db;DB_CLOSE_DELAY=-1 # Keep DB open as long as VM lives
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console # Set console path explicitly
+  jpa:
+    hibernate:
+      ddl-auto: update # Use update to avoid dropping schema on restart
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true # Defer data.sql until Hibernate setup
+
+# Google Cloud Vertex AI Gemini Configuration (combined)
+# cloud:
+#   gcp:
+#     project-id: resume-457500 # Replace with your GCP Project ID
+#     # credentials:
+#       # location: file:/path/to/your/service-account-key.json # Uncomment and set path if using service account key
+#     vertex:
+#       ai:
+#         location: us-central1 # Specify the region for Vertex AI
+#         # api-endpoint: us-central1-aiplatform.googleapis.com # Optional: Specify if needed
+
+# Google Cloud Vertex AI Gemini Configuration (Using Spring AI properties)
+  ai:
+    vertex:
+      ai:
+        gemini:
+          project-id: resume-457500 # Replace with your GCP Project ID
+          location: us-central1     # Replace with your desired region (e.g., us-central1)
+          chat:
+            options:
+              model: gemini-2.0-flash-001 # Default model
+              temperature: 0.5          # Default temperature
+            
+
+# The following block is no longer needed as the model is discovered dynamically
+# or configured via spring.ai properties above
+# spring:
+#   cloud:
+#     gcp:
+#       project-id: YOUR_GCP_PROJECT_ID # Replace with your GCP Project ID
+#       # credentials:
+#         # location: file:/path/to/your/service-account-key.json # Uncomment and set path if using service account key
+#       vertex:
+#         ai:
+#           location: us-central1 # Specify the region for Vertex AI
+#           # api-endpoint: us-central1-aiplatform.googleapis.com # Optional: Specify if needed
+#
+# # The following block is no longer needed as the model is discovered dynamically
+# # gemini:
+# #  model-name: gemini-1.5-flash-001 # Explicitly set the model name (can be changed)
+# #  api-key: YOUR_GEMINI_API_KEY_HERE # NOTE: Spring Cloud GCP typically uses Application Default Credentials (ADC) or service account keys, not direct API keys. This might be needed if using a different client library or for specific authentication scenarios outside of GCP standard practices.

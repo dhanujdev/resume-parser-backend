@@ -1,0 +1,276 @@
+openapi: 3.0.1
+info:
+  title: Resume Tailor API
+  description: API for uploading, parsing, and retrieving tailored resume data.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+tags:
+  - name: Resume Operations
+    description: Endpoints for managing candidate resumes
+paths:
+  /api/resumes/upload:
+    post:
+      tags:
+        - Resume Operations
+      summary: Upload and parse a resume PDF
+      description: Accepts a PDF file, parses it using AI, stores the extracted candidate information, and returns the created candidate data.
+      operationId: uploadAndParseResume
+      requestBody:
+        description: PDF file of the resume to be parsed.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The resume PDF file.
+      responses:
+        '200':
+          description: Successfully processed resume and created candidate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '400':
+          description: Bad Request - Invalid input (e.g., empty file, non-PDF file, invalid data).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error - An error occurred during processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resumes:
+    get:
+      tags:
+        - Resume Operations
+      summary: Get all candidates
+      description: Retrieves a list of all candidate records stored in the system.
+      operationId: getAllCandidates
+      responses:
+        '200':
+          description: A list of candidates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Candidate'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resumes/{id}:
+    get:
+      tags:
+        - Resume Operations
+      summary: Get a specific candidate by ID
+      description: Retrieves the details of a single candidate based on their unique ID.
+      operationId: getCandidate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric ID of the candidate to retrieve.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Candidate details found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '404':
+          description: Candidate not found for the provided ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' # Or potentially just an empty body
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Unique identifier for the candidate.
+        fullName:
+          type: string
+          description: Candidate's full name.
+        email:
+          type: string
+          format: email
+          description: Candidate's email address.
+        phoneNumber:
+          type: string
+          description: Candidate's phone number.
+        address:
+          type: string
+          description: Candidate's physical address.
+        linkedinUrl:
+          type: string
+          format: url
+          description: URL to the candidate's LinkedIn profile.
+        educationList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+          description: List of educational qualifications.
+        experienceList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Experience'
+          description: List of professional experiences.
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+          description: List of skills possessed by the candidate.
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+          description: List of projects the candidate has worked on.
+        summary:
+          $ref: '#/components/schemas/Summary'
+          description: Professional summary or objective.
+      # Note: Bidirectional relationships (e.g., candidate field within Education) are typically excluded from the response model
+      # to avoid circular references and excessive data transfer. The schema reflects the data sent *from* the server.
+
+    Education:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        institutionName: # Updated from 'institution'
+          type: string
+        degree:
+          type: string
+        fieldOfStudy:
+          type: string
+        startDate:
+          type: string # Changed from 'date' format as entity uses String
+          description: Start date (string format).
+        endDate:
+          type: string # Changed from 'date' format as entity uses String
+          description: End date (string format).
+        gpa: # Added field
+          type: string
+          description: Grade Point Average.
+        description:
+          type: string
+
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        companyName: # Updated from 'company'
+          type: string
+        jobTitle:
+          type: string
+        startDate:
+          type: string # Changed from 'date' format as entity uses String
+          description: Start date (string format).
+        endDate:
+          type: string # Changed from 'date' format as entity uses String
+          description: End date (string format).
+        location: # Added field
+          type: string
+        description:
+          type: string
+          description: Job responsibilities and achievements.
+
+    Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        skillName: # Updated from 'name'
+          type: string
+        proficiencyLevel: # Updated from 'level'
+          type: string
+          description: e.g., Beginner, Intermediate, Advanced or Years of Experience
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        projectName: # Updated from 'name'
+          type: string
+        startDate: # Added field
+          type: string
+          description: Start date (string format).
+        endDate: # Added field
+          type: string
+          description: End date (string format).
+        projectUrl: # Updated from 'url'
+          type: string
+          format: url
+        description:
+          type: string
+
+    Summary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        content:
+          type: string
+          description: The text of the summary.
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of when the error occurred.
+        status:
+          type: integer
+          description: HTTP status code.
+        error:
+          type: string
+          description: Short error description (e.g., Bad Request, Not Found).
+        message:
+          type: string
+          description: Detailed error message.
+        path:
+          type: string
+          description: The API path where the error occurred.
+      # Note: This ErrorResponse schema is a common Spring Boot pattern.
+      # The actual error response might vary slightly depending on exception handlers. 
